@@ -3,7 +3,7 @@ import { Users, Briefcase, Handshake } from "lucide-react";
 export default function Home() {
   
   const features = [
-    { title: "Personal Projects", desc: "Kelola progres pekerjaan pribadi Anda dengan mudah dan efisien.", icon: Users },
+    { title: "Personal Projects", desc: "Manage your personal projects in a private workspace that is accessible only to you.", icon: Users },
     { title: "Team Projects", desc: "Kolaborasi dengan tim untuk mencapai target proyek bersama.", icon: Briefcase },
     { title: "collaboration", desc: "Konfigurasi alur kerja Anda dengan berbagai tools tambahan.", icon: Handshake },
   ];
