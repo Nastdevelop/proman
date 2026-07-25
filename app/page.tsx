@@ -5,7 +5,7 @@ export default function Home() {
   const features = [
     { title: "Personal Projects", desc: "Manage your personal projects in a private workspace that is accessible only to you.", icon: Users },
     { title: "Team Projects", desc: "Lead your team as a project manager by organizing tasks, assigning responsibilities, and tracking progress in one place.", icon: Briefcase },
-    { title: "collaboration", desc: "Konfigurasi alur kerja Anda dengan berbagai tools tambahan.", icon: Handshake },
+    { title: "Freelance Project", desc: "Increase your value as a freelancer by giving clients access to track project progress in real time.", icon: Handshake },
   ];
 
   return (
