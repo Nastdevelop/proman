@@ -1,0 +1,62 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User { 
+  id    Int     @id @default(autoincrement()) 
+  email String  @unique
+  name  String
+  password  String
+
+  room Room[]
+  member Member[]
+} 
+
+model Room {
+  id String @id @default(cuid())
+  pmId Int
+  judul String
+  jenis Jenis @default(PERSONAL)
+
+  member Member[]
+  task Task[]
+  pm User @relation(fields:[pmId], references:[id])
+}
+
+enum Jenis {
+  PERSONAL
+  TEAM
+}
+
+model Task {
+  id Int @id @default(autoincrement())
+  roomId String
+  title String
+  content String
+  status Taskstatus @default(DEFAULT)
+  prioritas Int @default(2)
+
+  room Room @relation(fields:[roomId], references:[id])
+}
+
+enum Taskstatus {
+  DEFAULT
+  PROGRESS
+  PENDING
+  DONE
+}
+
+model Member {
+  id Int @id @default(autoincrement())
+  roomId String
+  userId Int
+
+  room Room @relation(fields:[roomId], references: [id])
+  user User @relation(fields:[userId], references: [id])
+}
