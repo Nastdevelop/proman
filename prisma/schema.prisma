@@ -8,40 +8,32 @@ datasource db {
   provider = "postgresql"
 }
 
-model User { 
-  id    Int     @id @default(autoincrement())
-  name  String  @unique
-  password  String
+model User {
+  id       Int      @id @default(autoincrement())
+  name     String   @unique
+  password String
 
-  room Room[]
-  member Member[]
-} 
+  rooms    Room[]
+  members  Member[]
+}
 
 model Room {
-  id String @id @default(cuid())
-  pmId Int
-  judul String
-  jenis Jenis @default(PERSONAL)
+  id         String   @id @default(cuid())
+  pmId       Int
+  judul      String
+  jenis      Jenis    @default(PERSONAL)
+  shareToken String?  @unique
 
-  member Member[]
-  task Task[]
-  pm User @relation(fields:[pmId], references:[id])
+  pm        User        @relation(fields: [pmId], references: [id])
+  members   Member[]
+  tasks     Task[]      @relation("RoomTasks")
+  divisions Division[]
 }
 
 enum Jenis {
   PERSONAL
   TEAM
-}
-
-model Task {
-  id Int @id @default(autoincrement())
-  roomId String
-  title String
-  content String
-  status Taskstatus @default(DEFAULT)
-  prioritas Int @default(2)
-
-  room Room @relation(fields:[roomId], references:[id])
+  FREELANCE
 }
 
 enum Taskstatus {
@@ -51,11 +43,36 @@ enum Taskstatus {
   DONE
 }
 
+model Task {
+  id         Int        @id @default(autoincrement())
+  roomId     String?
+  divisionId String?
+  title      String
+  content    String     @default("")
+  status     Taskstatus @default(DEFAULT)
+  prioritas  Int        @default(2)
+  createdAt  DateTime   @default(now())
+
+  room      Room?     @relation("RoomTasks", fields: [roomId], references: [id])
+  division  Division? @relation(fields: [divisionId], references: [id])
+}
+
+model Division {
+  id     String @id @default(cuid())
+  roomId String
+  name   String
+
+  room  Room   @relation(fields: [roomId], references: [id])
+  tasks Task[]
+}
+
 model Member {
-  id Int @id @default(autoincrement())
+  id     Int    @id @default(autoincrement())
   roomId String
   userId Int
 
-  room Room @relation(fields:[roomId], references: [id])
-  user User @relation(fields:[userId], references: [id])
+  room Room @relation(fields: [roomId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([roomId, userId])
 }

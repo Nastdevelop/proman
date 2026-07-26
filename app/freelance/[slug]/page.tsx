@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import {
   ArrowLeft, ListTodo, PlayCircle, CheckCircle2, Clock,
-  Search, SlidersHorizontal, AlertTriangle, Plus,
+  Search, SlidersHorizontal, AlertTriangle, Plus, Share2,
 } from "lucide-react"
 import TaskTable from "@/components/task-table"
 import TaskActionModal from "@/components/task-action-modal"
 import AddTaskModal from "@/components/add-task-modal"
-import type { Task } from "@/lib/types"
+import ShareModal from "@/components/share-modal"
+import type { Task, Room } from "@/lib/types"
 
 const tabs = [
   { key: "all", label: "All Tasks", icon: ListTodo },
@@ -34,7 +35,7 @@ function getStatusCount(tasks: Task[], status: string) {
   return tasks.filter((t) => t.status.toLowerCase() === status).length
 }
 
-export default function ProjectPage({
+export default function FreelancePage({
   params,
 }: {
   params: Promise<{ slug: string }>
@@ -49,7 +50,10 @@ export default function ProjectPage({
   const [showFilter, setShowFilter] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [showAddTask, setShowAddTask] = useState(false)
+  const [showShare, setShowShare] = useState(false)
   const [tasks, setTasks] = useState<Task[]>([])
+  const [roomTitle, setRoomTitle] = useState("")
+  const [shareToken, setShareToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
@@ -63,8 +67,12 @@ export default function ProjectPage({
         if (r.status === 404) { setNotFound(true); setLoading(false); return null }
         return r.json()
       })
-      .then((data) => {
-        if (data) setTasks(data.tasks)
+      .then((data: Room | null) => {
+        if (data) {
+          setRoomTitle(data.judul)
+          setTasks(data.tasks)
+          setShareToken(data.shareToken)
+        }
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -104,6 +112,18 @@ export default function ProjectPage({
     setShowAddTask(false)
   }
 
+  const handleGenerateShare = async () => {
+    const res = await fetch(`/api/rooms/${slug}/share`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setShareToken(data.shareToken)
+    }
+    setShowShare(true)
+  }
+
   const filteredTasks = useMemo(() => {
     return tasks.filter((t) => {
       const matchTab = activeTab === "all" || t.status.toLowerCase() === activeTab
@@ -126,13 +146,15 @@ export default function ProjectPage({
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <AlertTriangle size={48} className="text-zinc-600" />
-        <p className="text-zinc-400">Proyek tidak ditemukan</p>
+        <p className="text-zinc-400">Project tidak ditemukan</p>
         <button onClick={() => router.push("/home")} className="text-sm text-blue-400 hover:text-blue-300 transition-colors cursor-pointer">
           Kembali ke Home
         </button>
       </div>
     )
   }
+
+  const shareUrl = shareToken ? `${window.location.origin}/share/${shareToken}` : ""
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
@@ -142,8 +164,10 @@ export default function ProjectPage({
 
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-1">
-          <h1 className="text-2xl font-bold text-white">Project</h1>
-          <span className="bg-green-900/50 text-green-400 text-[11px] font-medium px-2.5 py-0.5 rounded-full">Personal</span>
+          <h1 className="text-2xl font-bold text-white">{roomTitle}</h1>
+          <span className="bg-purple-900/50 text-purple-400 text-[11px] font-medium px-2.5 py-0.5 rounded-full flex items-center gap-1">
+            <Share2 size={12} /> Freelance
+          </span>
         </div>
         <p className="text-zinc-500 text-sm mt-1">
           {tasks.length} tugas &mdash; {getStatusCount(tasks, "progress")} in progress,{" "}
@@ -173,6 +197,10 @@ export default function ProjectPage({
               </div>
             )}
           </div>
+          <button onClick={handleGenerateShare}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-colors cursor-pointer">
+            <Share2 size={16} />Share Link
+          </button>
           <button onClick={() => setShowAddTask(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer">
             <Plus size={16} />Add Task
@@ -203,11 +231,10 @@ export default function ProjectPage({
           status: t.status.toLowerCase() as "all" | "progress" | "done" | "pending",
         }))}
         onTaskClick={(task) => {
-          const original = filteredTasks.find((t) => t.id === task.id)
+          const original = tasks.find((t) => t.id === task.id)
           if (original) setSelectedTask(original)
         }}
-        emptyMessage={search || priorityFilter !== "All" ? "Tidak ada tugas yang cocok dengan pencarian." : `Belum ada tugas dengan status "${tabs.find((t) => t.key === activeTab)?.label}".`}
-      />
+        emptyMessage={search || priorityFilter !== "All" ? "Tidak ada tugas yang cocok dengan pencarian." : `Belum ada tugas dengan status "${tabs.find((t) => t.key === activeTab)?.label}".`} />
 
       {selectedTask && (
         <TaskActionModal
@@ -222,8 +249,10 @@ export default function ProjectPage({
         />
       )}
 
-      {showAddTask && (
-        <AddTaskModal onClose={() => setShowAddTask(false)} onAdd={handleAddTask} />
+      {showAddTask && <AddTaskModal onClose={() => setShowAddTask(false)} onAdd={handleAddTask} />}
+
+      {showShare && shareUrl && (
+        <ShareModal projectTitle={roomTitle} shareUrl={shareUrl} onClose={() => setShowShare(false)} />
       )}
     </div>
   )
