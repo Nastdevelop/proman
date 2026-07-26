@@ -16,7 +16,7 @@ export default function Home() {
           WELCOME TO 
         <span className="text-blue-500 text-5xl md:text-7xl font-bold text-start block md:inline"> PROMAN</span>
         </h1>
-        <p className="mt-4 max-w-2xl pl-3 text-lg text-zinc-200 mb-10">
+        <p className="mt-4 max-w-2xl pl-3 text-lg text-zinc-300 mb-10">
           A list-based project management platform that helps individuals and teams organize tasks, set priorities, and deliver projects on time.
         </p>
       </div>
@@ -24,7 +24,7 @@ export default function Home() {
       {/* About Section */}
       <div className="max-w-6xl mt-10 mx-auto">
         <h2 className="text-3xl font-semibold text-center mb-3">About</h2>
-        <p className="w-[700px] text-center mx-auto mb-10">Proman offers three types of project management solutions: Personal, Team, and Collaboration. designed to meet different workflows and productivity needs.</p>
+        <p className="w-[700px] text-center mx-auto mb-10">Proman offers three types of project management solutions to Personal, Team, and Collaboration. designed to meet different workflows and productivity needs.</p>
         
         {/* CARD */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
