@@ -10,6 +10,8 @@ import {
 import TaskTable from "@/components/task-table"
 import TaskActionModal from "@/components/task-action-modal"
 import AddTaskModal from "@/components/add-task-modal"
+import TaskDetailModal from "@/components/task-detail-modal"
+import TaskEditModal from "@/components/task-edit-modal"
 import ShareModal from "@/components/share-modal"
 import type { Task, Room } from "@/lib/types"
 
@@ -35,6 +37,10 @@ function getStatusCount(tasks: Task[], status: string) {
   return tasks.filter((t) => t.status.toLowerCase() === status).length
 }
 
+type TaskItem = {
+  id: number; title: string; content: string; priority: "Critical" | "High" | "Medium" | "Low"; status: "all" | "progress" | "done" | "pending"
+}
+
 export default function FreelancePage({
   params,
 }: {
@@ -51,6 +57,8 @@ export default function FreelancePage({
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [showAddTask, setShowAddTask] = useState(false)
   const [showShare, setShowShare] = useState(false)
+  const [detailTask, setDetailTask] = useState<TaskItem | null>(null)
+  const [editTask, setEditTask] = useState<TaskItem | null>(null)
   const [tasks, setTasks] = useState<Task[]>([])
   const [roomTitle, setRoomTitle] = useState("")
   const [shareToken, setShareToken] = useState<string | null>(null)
@@ -82,10 +90,7 @@ export default function FreelancePage({
     const dbStatus = newStatus.toUpperCase()
     const res = await fetch(`/api/rooms/${slug}/tasks/${taskId}`, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ status: dbStatus }),
     })
     if (res.ok) {
@@ -96,20 +101,39 @@ export default function FreelancePage({
     setSelectedTask(null)
   }
 
-  const handleAddTask = async (title: string, priority: string) => {
+  const handleAddTask = async (title: string, content: string, priority: string) => {
     const res = await fetch(`/api/rooms/${slug}/tasks`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ title, prioritas: priorityReverse[priority] }),
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ title, content, prioritas: priorityReverse[priority] }),
     })
     if (res.ok) {
       const task = await res.json()
       setTasks((prev) => [...prev, task])
     }
     setShowAddTask(false)
+  }
+
+  const handleEditTask = async (id: number, title: string, content: string, priority: string) => {
+    const res = await fetch(`/api/rooms/${slug}/tasks/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ title, content, prioritas: priorityReverse[priority] }),
+    })
+    if (res.ok) {
+      const updated = await res.json()
+      setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)))
+    }
+    setEditTask(null)
+  }
+
+  const handleDeleteTask = async (task: TaskItem) => {
+    if (!confirm(`Hapus tugas "${task.title}"?`)) return
+    const res = await fetch(`/api/rooms/${slug}/tasks/${task.id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (res.ok) setTasks((prev) => prev.filter((t) => t.id !== task.id))
   }
 
   const handleGenerateShare = async () => {
@@ -133,6 +157,14 @@ export default function FreelancePage({
       return matchTab && matchSearch && matchPriority
     })
   }, [tasks, activeTab, search, priorityFilter])
+
+  const toItem = (t: Task): TaskItem => ({
+    id: t.id,
+    title: t.title,
+    content: t.content,
+    priority: (priorityMap[t.prioritas] || "Medium") as TaskItem["priority"],
+    status: t.status.toLowerCase() as "all" | "progress" | "done" | "pending",
+  })
 
   if (authLoading || loading) {
     return (
@@ -224,32 +256,36 @@ export default function FreelancePage({
       </div>
 
       <TaskTable
-        data={filteredTasks.map((t) => ({
-          id: t.id,
-          title: t.title,
-          priority: (priorityMap[t.prioritas] || "Medium") as "Critical" | "High" | "Medium" | "Low",
-          status: t.status.toLowerCase() as "all" | "progress" | "done" | "pending",
-        }))}
+        data={filteredTasks.map(toItem)}
         onTaskClick={(task) => {
           const original = tasks.find((t) => t.id === task.id)
           if (original) setSelectedTask(original)
         }}
-        emptyMessage={search || priorityFilter !== "All" ? "Tidak ada tugas yang cocok dengan pencarian." : `Belum ada tugas dengan status "${tabs.find((t) => t.key === activeTab)?.label}".`} />
+        onViewDetail={setDetailTask}
+        onEditTask={setEditTask}
+        onDeleteTask={handleDeleteTask}
+        emptyMessage={search || priorityFilter !== "All" ? "Tidak ada tugas yang cocok dengan pencarian." : `Belum ada tugas dengan status "${tabs.find((t) => t.key === activeTab)?.label}".`}
+      />
 
       {selectedTask && (
         <TaskActionModal
-          task={{
-            id: selectedTask.id,
-            title: selectedTask.title,
-            priority: (priorityMap[selectedTask.prioritas] || "Medium") as "Critical" | "High" | "Medium" | "Low",
-            status: selectedTask.status.toLowerCase() as "all" | "progress" | "done" | "pending",
-          }}
+          task={toItem(selectedTask)}
           onClose={() => setSelectedTask(null)}
           onMove={(id, status) => handleMove(id, status)}
         />
       )}
 
       {showAddTask && <AddTaskModal onClose={() => setShowAddTask(false)} onAdd={handleAddTask} />}
+
+      {detailTask && <TaskDetailModal task={detailTask} onClose={() => setDetailTask(null)} />}
+
+      {editTask && (
+        <TaskEditModal
+          task={editTask}
+          onClose={() => setEditTask(null)}
+          onSave={handleEditTask}
+        />
+      )}
 
       {showShare && shareUrl && (
         <ShareModal projectTitle={roomTitle} shareUrl={shareUrl} onClose={() => setShowShare(false)} />

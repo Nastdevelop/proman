@@ -6,6 +6,7 @@ import {
   Search, SlidersHorizontal, AlertTriangle, Eye, ExternalLink,
 } from "lucide-react"
 import TaskTable from "@/components/task-table"
+import TaskDetailModal from "@/components/task-detail-modal"
 
 const tabs = [
   { key: "all", label: "All Tasks", icon: ListTodo },
@@ -24,6 +25,7 @@ const priorityMap: Record<number, string> = {
 type PublicTask = {
   id: number
   title: string
+  content: string
   prioritas: number
   status: string
 }
@@ -45,6 +47,9 @@ export default function SharePage({
   const [search, setSearch] = useState("")
   const [priorityFilter, setPriorityFilter] = useState<string>("All")
   const [showFilter, setShowFilter] = useState(false)
+  const [detailTask, setDetailTask] = useState<{
+    id: number; title: string; content: string; priority: "Critical" | "High" | "Medium" | "Low"; status: "all" | "progress" | "done" | "pending"
+  } | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
@@ -86,6 +91,7 @@ export default function SharePage({
   const mappedTasks = filteredTasks.map((t) => ({
     id: t.id,
     title: t.title,
+    content: t.content || "",
     priority: (priorityMap[t.prioritas] || "Medium") as "Critical" | "High" | "Medium" | "Low",
     status: t.status.toLowerCase() as "all" | "progress" | "done" | "pending",
   }))
@@ -159,7 +165,10 @@ export default function SharePage({
       </div>
 
       <TaskTable data={mappedTasks}
+        onViewDetail={setDetailTask}
         emptyMessage={search || priorityFilter !== "All" ? "Tidak ada tugas yang cocok dengan pencarian." : `Belum ada tugas dengan status "${tabs.find((t) => t.key === activeTab)?.label}".`} />
+
+      {detailTask && <TaskDetailModal task={detailTask} onClose={() => setDetailTask(null)} />}
     </div>
   )
 }

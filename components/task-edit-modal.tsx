@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { X, Plus } from "lucide-react"
+import { X, Save } from "lucide-react"
 
 const priorities = [
   { value: "Critical", color: "text-red-400", dot: "bg-red-500" },
@@ -10,16 +10,25 @@ const priorities = [
   { value: "Low", color: "text-green-400", dot: "bg-green-500" },
 ] as const
 
-export default function AddTaskModal({
+type TaskItem = {
+  id: number
+  title: string
+  content: string
+  priority: "Critical" | "High" | "Medium" | "Low"
+}
+
+export default function TaskEditModal({
+  task,
   onClose,
-  onAdd,
+  onSave,
 }: {
+  task: TaskItem
   onClose: () => void
-  onAdd: (title: string, content: string, priority: string) => void
+  onSave: (id: number, title: string, content: string, priority: string) => void
 }) {
-  const [title, setTitle] = useState("")
-  const [content, setContent] = useState("")
-  const [priority, setPriority] = useState("Medium")
+  const [title, setTitle] = useState(task.title)
+  const [content, setContent] = useState(task.content)
+  const [priority, setPriority] = useState(task.priority)
 
   return (
     <div
@@ -31,7 +40,7 @@ export default function AddTaskModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-semibold text-white">Tambah Tugas</h2>
+          <h2 className="text-lg font-semibold text-white">Edit Tugas</h2>
           <button
             onClick={onClose}
             className="text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
@@ -95,13 +104,13 @@ export default function AddTaskModal({
           </button>
           <button
             onClick={() => {
-              if (title.trim()) onAdd(title.trim(), content.trim(), priority)
+              if (title.trim()) onSave(task.id, title.trim(), content.trim(), priority)
             }}
             disabled={!title.trim()}
             className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/40 disabled:cursor-not-allowed text-white font-medium text-sm py-2.5 rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <Plus size={16} />
-            Tambah
+            <Save size={16} />
+            Simpan
           </button>
         </div>
       </div>

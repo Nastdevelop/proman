@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowUpDown } from "lucide-react"
+import { ArrowUpDown, Eye, Pencil, Trash2 } from "lucide-react"
 import { useState } from "react"
 import type { TaskItem } from "@/lib/sample-data"
 
@@ -17,10 +17,16 @@ export default function TaskTable({
   data,
   emptyMessage = "Belum ada tugas",
   onTaskClick,
+  onViewDetail,
+  onEditTask,
+  onDeleteTask,
 }: {
   data: TaskItem[]
   emptyMessage?: string
   onTaskClick?: (task: TaskItem) => void
+  onViewDetail?: (task: TaskItem) => void
+  onEditTask?: (task: TaskItem) => void
+  onDeleteTask?: (task: TaskItem) => void
 }) {
   const [sortAsc, setSortAsc] = useState(true)
 
@@ -28,6 +34,8 @@ export default function TaskTable({
     const diff = sortOrders.indexOf(a.priority) - sortOrders.indexOf(b.priority)
     return sortAsc ? diff : -diff
   })
+
+  const hasActions = !!(onViewDetail || onEditTask || onDeleteTask)
 
   return (
     <div className="rounded-xl border border-zinc-800 overflow-hidden">
@@ -42,7 +50,7 @@ export default function TaskTable({
                 Tugas
               </div>
             </th>
-            <th className="text-left py-3.5 px-5 text-zinc-400 font-medium tracking-wide w-44">
+            <th className="text-left py-3.5 px-5 text-zinc-400 font-medium tracking-wide w-36">
               <button
                 onClick={() => setSortAsc(!sortAsc)}
                 className="flex items-center gap-1.5 hover:text-zinc-200 transition-colors cursor-pointer"
@@ -51,12 +59,17 @@ export default function TaskTable({
                 <ArrowUpDown size={14} className="text-zinc-600" />
               </button>
             </th>
+            {hasActions && (
+              <th className="text-center py-3.5 px-4 text-zinc-400 font-medium tracking-wide w-28">
+                Aksi
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
           {sorted.length === 0 ? (
             <tr>
-              <td colSpan={2} className="text-center py-12 text-zinc-500">
+              <td colSpan={hasActions ? 3 : 2} className="text-center py-12 text-zinc-500">
                 {emptyMessage}
               </td>
             </tr>
@@ -68,9 +81,7 @@ export default function TaskTable({
                   key={task.id}
                   onClick={() => onTaskClick?.(task)}
                   className={`border-b border-zinc-800/50 last:border-0 transition-colors ${
-                    onTaskClick
-                      ? "hover:bg-zinc-900/80 cursor-pointer"
-                      : "hover:bg-zinc-900/80"
+                    onTaskClick ? "hover:bg-zinc-900/80 cursor-pointer" : "hover:bg-zinc-900/80"
                   }`}
                 >
                   <td className="py-3.5 px-5">
@@ -78,7 +89,7 @@ export default function TaskTable({
                       <span className="text-zinc-600 text-xs w-5 text-right tabular-nums">
                         {index + 1}
                       </span>
-                      <span className="text-zinc-100">{task.title}</span>
+                      <span className="text-zinc-100 truncate max-w-xs">{task.title}</span>
                     </div>
                   </td>
                   <td className="py-3.5 px-5">
@@ -89,6 +100,39 @@ export default function TaskTable({
                       {pc.label}
                     </span>
                   </td>
+                  {hasActions && (
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center justify-center gap-1">
+                        {onViewDetail && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onViewDetail(task) }}
+                            className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors cursor-pointer"
+                            title="Lihat detail"
+                          >
+                            <Eye size={16} />
+                          </button>
+                        )}
+                        {onEditTask && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onEditTask(task) }}
+                            className="p-1.5 rounded-md text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10 transition-colors cursor-pointer"
+                            title="Edit tugas"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                        )}
+                        {onDeleteTask && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onDeleteTask(task) }}
+                            className="p-1.5 rounded-md text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                            title="Hapus tugas"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               )
             })

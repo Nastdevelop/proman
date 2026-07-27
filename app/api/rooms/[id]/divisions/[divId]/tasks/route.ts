@@ -13,11 +13,11 @@ export async function POST(
   const room = await prisma.room.findFirst({ where: { id, pmId: user.userId } })
   if (!room) return NextResponse.json({ message: "Not found" }, { status: 404 })
 
-  const { title, prioritas } = await req.json()
+  const { title, content, prioritas } = await req.json()
   if (!title) return NextResponse.json({ message: "Title required" }, { status: 400 })
 
   const task = await prisma.task.create({
-    data: { divisionId: divId, title, prioritas: prioritas ?? 2, content: "" },
+    data: { divisionId: divId, title, content: content ?? "", prioritas: prioritas ?? 2 },
   })
   return NextResponse.json(task, { status: 201 })
 }

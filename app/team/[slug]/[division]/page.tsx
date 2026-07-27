@@ -10,6 +10,8 @@ import {
 import TaskTable from "@/components/task-table"
 import TaskActionModal from "@/components/task-action-modal"
 import AddTaskModal from "@/components/add-task-modal"
+import TaskDetailModal from "@/components/task-detail-modal"
+import TaskEditModal from "@/components/task-edit-modal"
 import InviteModal from "@/components/invite-modal"
 import type { Task, Room } from "@/lib/types"
 
@@ -30,6 +32,10 @@ const priorityReverse: Record<string, number> = {
   Critical: 1, High: 2, Medium: 3, Low: 4,
 }
 
+type TaskItem = {
+  id: number; title: string; content: string; priority: "Critical" | "High" | "Medium" | "Low"; status: "all" | "progress" | "done" | "pending"
+}
+
 export default function DivisionPage({
   params,
 }: {
@@ -48,11 +54,11 @@ export default function DivisionPage({
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [showAddTask, setShowAddTask] = useState(false)
   const [showInvite, setShowInvite] = useState(false)
+  const [detailTask, setDetailTask] = useState<TaskItem | null>(null)
+  const [editTask, setEditTask] = useState<TaskItem | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (authLoading) return
-    if (!token) { router.push("/login"); return }
+  const fetchTasks = () => {
     fetch(`/api/rooms/${slug}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -63,7 +69,12 @@ export default function DivisionPage({
         setTasks(div ? div.tasks : [])
         setLoading(false)
       })
-      .catch(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    if (authLoading) return
+    if (!token) { router.push("/login"); return }
+    fetchTasks()
   }, [slug, division, token, authLoading, router])
 
   const divInfo = room?.divisions.find((d) => d.id === division)
@@ -82,10 +93,7 @@ export default function DivisionPage({
     const dbStatus = newStatus.toUpperCase()
     const res = await fetch(`/api/rooms/${slug}/divisions/${division}/tasks/${taskId}`, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ status: dbStatus }),
     })
     if (res.ok) {
@@ -96,14 +104,11 @@ export default function DivisionPage({
     setSelectedTask(null)
   }
 
-  const handleAddTask = async (title: string, priority: string) => {
+  const handleAddTask = async (title: string, content: string, priority: string) => {
     const res = await fetch(`/api/rooms/${slug}/divisions/${division}/tasks`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ title, prioritas: priorityReverse[priority] }),
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ title, content, prioritas: priorityReverse[priority] }),
     })
     if (res.ok) {
       const task = await res.json()
@@ -111,6 +116,36 @@ export default function DivisionPage({
     }
     setShowAddTask(false)
   }
+
+  const handleEditTask = async (id: number, title: string, content: string, priority: string) => {
+    const res = await fetch(`/api/rooms/${slug}/divisions/${division}/tasks/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ title, content, prioritas: priorityReverse[priority] }),
+    })
+    if (res.ok) {
+      const updated = await res.json()
+      setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)))
+    }
+    setEditTask(null)
+  }
+
+  const handleDeleteTask = async (task: TaskItem) => {
+    if (!confirm(`Hapus tugas "${task.title}"?`)) return
+    const res = await fetch(`/api/rooms/${slug}/divisions/${division}/tasks/${task.id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (res.ok) setTasks((prev) => prev.filter((t) => t.id !== task.id))
+  }
+
+  const toItem = (t: Task): TaskItem => ({
+    id: t.id,
+    title: t.title,
+    content: t.content,
+    priority: (priorityMap[t.prioritas] || "Medium") as TaskItem["priority"],
+    status: t.status.toLowerCase() as "all" | "progress" | "done" | "pending",
+  })
 
   if (authLoading || loading) {
     return (
@@ -191,32 +226,37 @@ export default function DivisionPage({
         })}
       </div>
 
-      <TaskTable data={filteredTasks.map((t) => ({
-          id: t.id,
-          title: t.title,
-          priority: (priorityMap[t.prioritas] || "Medium") as "Critical" | "High" | "Medium" | "Low",
-          status: t.status.toLowerCase() as "all" | "progress" | "done" | "pending",
-        }))}
+      <TaskTable
+        data={filteredTasks.map(toItem)}
         onTaskClick={(task) => {
           const original = tasks.find((t) => t.id === task.id)
           if (original) setSelectedTask(original)
         }}
-        emptyMessage={search || priorityFilter !== "All" ? "Tidak ada tugas yang cocok dengan pencarian." : "Belum ada tugas di divisi ini."} />
+        onViewDetail={setDetailTask}
+        onEditTask={setEditTask}
+        onDeleteTask={handleDeleteTask}
+        emptyMessage={search || priorityFilter !== "All" ? "Tidak ada tugas yang cocok dengan pencarian." : "Belum ada tugas di divisi ini."}
+      />
 
       {selectedTask && (
         <TaskActionModal
-          task={{
-            id: selectedTask.id,
-            title: selectedTask.title,
-            priority: (priorityMap[selectedTask.prioritas] || "Medium") as "Critical" | "High" | "Medium" | "Low",
-            status: selectedTask.status.toLowerCase() as "all" | "progress" | "done" | "pending",
-          }}
+          task={toItem(selectedTask)}
           onClose={() => setSelectedTask(null)}
           onMove={(id, status) => handleMove(id, status)}
         />
       )}
 
       {showAddTask && <AddTaskModal onClose={() => setShowAddTask(false)} onAdd={handleAddTask} />}
+
+      {detailTask && <TaskDetailModal task={detailTask} onClose={() => setDetailTask(null)} />}
+
+      {editTask && (
+        <TaskEditModal
+          task={editTask}
+          onClose={() => setEditTask(null)}
+          onSave={handleEditTask}
+        />
+      )}
 
       {showInvite && <InviteModal divisionName={divInfo.name} onClose={() => setShowInvite(false)} />}
     </div>
