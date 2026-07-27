@@ -231,11 +231,11 @@ export default function FreelancePage({
           </div>
           <button onClick={handleGenerateShare}
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-colors cursor-pointer">
-            <Share2 size={16} />Share Link
+            <Share2 size={16} />Share
           </button>
           <button onClick={() => setShowAddTask(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer">
-            <Plus size={16} />Add Task
+            <Plus size={16} />Add 
           </button>
         </div>
       </div>
