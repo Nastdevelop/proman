@@ -8,7 +8,7 @@ export default function Navbar() {
     return (
         <div className="flex justify-between right-0 left-0 fixed bg-black px-4 md:px-10 border-b border-zinc-800">
             <div className="flex items-center ">
-                <img src="logodr.png" alt="" className="w-15 h-15 rounded-full" />
+                <img src="/logodr.png" alt="Proman" className="w-12 h-12 md:w-15 md:h-15 rounded-full" />
             </div>
 
                 {pathname === '/' ?
