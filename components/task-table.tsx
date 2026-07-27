@@ -38,7 +38,7 @@ export default function TaskTable({
   const hasActions = !!(onViewDetail || onEditTask || onDeleteTask)
 
   return (
-    <div className="rounded-xl border border-zinc-800 overflow-hidden">
+    <div className="rounded-xl border border-zinc-800 overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-zinc-800 bg-zinc-900/50">

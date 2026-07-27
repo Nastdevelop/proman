@@ -56,7 +56,7 @@ export default function TeamOverview({
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
         <h2 className="text-lg font-semibold text-zinc-200">Divisi</h2>
         <button
           onClick={() => setShowAddDiv(true)}

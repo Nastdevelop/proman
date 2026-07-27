@@ -212,13 +212,13 @@ export default function DivisionPage({
         </div>
       </div>
 
-      <div className="flex gap-1 mb-6 border-b border-zinc-800">
+      <div className="flex gap-1 mb-6 border-b border-zinc-800 overflow-x-auto">
         {statusTabs.map((tab) => {
           const count = tasks.filter((t) => tab.key === "all" || t.status.toLowerCase() === tab.key).length
           const isActive = activeStatus === tab.key
           return (
             <button key={tab.key} onClick={() => setActiveStatus(tab.key)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all cursor-pointer border-b-2 -mb-[1px] ${isActive ? "text-blue-400 border-blue-500" : "text-zinc-500 border-transparent hover:text-zinc-300 hover:border-zinc-700"}`}>
+              className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-2.5 text-xs md:text-sm font-medium transition-all cursor-pointer border-b-2 -mb-[1px] whitespace-nowrap ${isActive ? "text-blue-400 border-blue-500" : "text-zinc-500 border-transparent hover:text-zinc-300 hover:border-zinc-700"}`}>
               {tab.label}
               <span className={`text-[11px] px-1.5 py-0.5 rounded-full ${isActive ? "bg-blue-500/15 text-blue-400" : "bg-zinc-800 text-zinc-500"}`}>{count}</span>
             </button>

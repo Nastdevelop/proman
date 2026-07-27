@@ -173,8 +173,8 @@ export default function ProjectPage({
       </button>
 
       <div className="mb-6">
-        <div className="flex items-center gap-3 mb-1">
-          <h1 className="text-2xl font-bold text-white">Project</h1>
+        <div className="flex items-center gap-3 mb-1 flex-wrap">
+          <h1 className="text-xl md:text-2xl font-bold text-white">Project</h1>
           <span className="bg-green-900/50 text-green-400 text-[11px] font-medium px-2.5 py-0.5 rounded-full">Personal</span>
         </div>
         <p className="text-zinc-500 text-sm mt-1">
@@ -212,14 +212,14 @@ export default function ProjectPage({
         </div>
       </div>
 
-      <div className="flex gap-1 mb-6 border-b border-zinc-800">
+      <div className="flex gap-1 mb-6 border-b border-zinc-800 overflow-x-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon
           const count = getStatusCount(tasks, tab.key)
           const isActive = activeTab === tab.key
           return (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all cursor-pointer border-b-2 -mb-[1px] ${isActive ? "text-blue-400 border-blue-500" : "text-zinc-500 border-transparent hover:text-zinc-300 hover:border-zinc-700"}`}>
+              className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-2.5 text-xs md:text-sm font-medium transition-all cursor-pointer border-b-2 -mb-[1px] whitespace-nowrap ${isActive ? "text-blue-400 border-blue-500" : "text-zinc-500 border-transparent hover:text-zinc-300 hover:border-zinc-700"}`}>
               <Icon size={16} />{tab.label}
               <span className={`text-[11px] px-1.5 py-0.5 rounded-full ${isActive ? "bg-blue-500/15 text-blue-400" : "bg-zinc-800 text-zinc-500"}`}>{count}</span>
             </button>

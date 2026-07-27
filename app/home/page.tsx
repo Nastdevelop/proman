@@ -90,8 +90,8 @@ export default function Homee() {
         Kelola dan pantau semua proyek Anda di satu tempat.
       </p>
 
-      <div className="flex items-center gap-4 mb-8">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-col sm:flex-row items-start  gap-4 mb-8">
+        <div className="relative w-full sm:flex-1 sm:max-w-md">
           <input
             type="text"
             placeholder="Cari project..."
@@ -101,7 +101,7 @@ export default function Homee() {
             <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
           </svg>
         </div>
-        <button onClick={() => setOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm py-2.5 px-5 rounded-lg transition-colors cursor-pointer">
+        <button onClick={() => setOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white  font-medium text-sm py-2.5 px-5 rounded-lg transition-colors cursor-pointer">
           Create New
         </button>
       </div>

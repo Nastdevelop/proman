@@ -53,8 +53,8 @@ export default function TeamLayout({
       </Link>
 
       <div className="mb-6">
-        <div className="flex items-center gap-3 mb-1">
-          <h1 className="text-2xl font-bold text-white">{room.judul}</h1>
+        <div className="flex items-center gap-3 mb-1 flex-wrap">
+          <h1 className="text-xl md:text-2xl font-bold text-white">{room.judul}</h1>
           <span className="bg-blue-900/50 text-blue-400 text-[11px] font-medium px-2.5 py-0.5 rounded-full flex items-center gap-1">
             <Users size={12} /> Team
           </span>
